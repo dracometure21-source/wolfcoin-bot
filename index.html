@@ -10,33 +10,21 @@
         body {
             background: #0a0a0a;
             color: white;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
+        .page { display: none; padding-bottom: 80px; }
+        .page.active { display: block; }
         .header {
             width: 100%;
             padding: 20px;
             text-align: center;
             background: linear-gradient(180deg, #1a1a2e 0%, #0a0a0a 100%);
         }
-        .wolf-logo {
-            width: 120px;
-            height: 120px;
-            margin: 20px auto;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
         .coin-name {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
-            color: #ffffff;
+            color: #fff;
             letter-spacing: 3px;
         }
         .balance-card {
@@ -45,23 +33,11 @@
             border-radius: 20px;
             padding: 25px;
             margin: 20px;
-            width: 90%;
             text-align: center;
         }
-        .balance-label {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 10px;
-        }
-        .balance-amount {
-            font-size: 42px;
-            font-weight: bold;
-            color: #ffffff;
-        }
-        .balance-symbol {
-            font-size: 18px;
-            color: #888;
-        }
+        .balance-label { font-size: 14px; color: #888; margin-bottom: 10px; }
+        .balance-amount { font-size: 42px; font-weight: bold; color: #fff; }
+        .balance-symbol { font-size: 18px; color: #888; }
         .mine-btn {
             width: 200px;
             height: 200px;
@@ -70,32 +46,66 @@
             border: 3px solid #444;
             cursor: pointer;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             margin: 10px auto;
             transition: all 0.2s;
             box-shadow: 0 0 30px rgba(255,255,255,0.1);
+            overflow: hidden;
         }
-        .mine-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 0 50px rgba(255,255,255,0.3);
+        .mine-btn:active { transform: scale(0.95); box-shadow: 0 0 50px rgba(255,255,255,0.3); }
+        .mine-btn img { width: 170px; height: 170px; object-fit: cover; border-radius: 50%; }
+        .mine-text { font-size: 14px; color: #888; margin: 8px; text-align: center; }
+        .timer { font-size: 16px; color: #888; margin: 15px; text-align: center; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px;
         }
-        .mine-btn img {
-            width: 100px;
-            height: 100px;
-        }
-        .mine-text {
-            font-size: 14px;
-            color: #888;
-            margin-top: 8px;
-        }
-        .timer {
-            font-size: 16px;
-            color: #888;
-            margin: 15px;
+        .stat-card {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 20px;
             text-align: center;
         }
+        .stat-value { font-size: 28px; font-weight: bold; color: #fff; }
+        .stat-label { font-size: 12px; color: #888; margin-top: 5px; }
+        .friends-card {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 20px;
+        }
+        .invite-btn {
+            width: calc(100% - 40px);
+            margin: 10px 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
+            border: 1px solid #444;
+            border-radius: 15px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .top-item {
+            display: flex;
+            align-items: center;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin: 10px 20px;
+        }
+        .top-rank { font-size: 20px; font-weight: bold; width: 40px; color: #888; }
+        .top-rank.gold { color: #FFD700; }
+        .top-rank.silver { color: #C0C0C0; }
+        .top-rank.bronze { color: #CD7F32; }
+        .top-name { flex: 1; font-size: 16px; }
+        .top-balance { font-size: 16px; color: #888; }
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -104,7 +114,7 @@
             border-top: 1px solid #222;
             display: flex;
             justify-content: space-around;
-            padding: 15px 0;
+            padding: 12px 0;
         }
         .nav-item {
             display: flex;
@@ -128,43 +138,103 @@
             display: none;
             z-index: 999;
         }
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 20px;
+            text-align: center;
+        }
+        .ref-link {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 20px;
+            font-size: 13px;
+            color: #888;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="coin-name">🐺 WOLF COIN</div>
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+    <div class="header">
+        <div class="coin-name">🐺 WOLF COIN</div>
+    </div>
+    <div class="balance-card">
+        <div class="balance-label">Your Balance</div>
+        <div class="balance-amount" id="balance-home">0</div>
+        <div class="balance-symbol">WOLF</div>
+    </div>
+    <button class="mine-btn" onclick="mine()" id="mineBtn">
+        <img src="wolf.png" alt="Wolf">
+    </button>
+    <div class="mine-text">TAP TO MINE</div>
+    <div class="timer" id="timer">Mine Now! ⛏️</div>
 </div>
 
-<div class="balance-card">
-    <div class="balance-label">Your Balance</div>
-    <div class="balance-amount" id="balance">0</div>
-    <div class="balance-symbol">WOLF</div>
+<!-- MINE PAGE -->
+<div class="page" id="page-mine">
+    <div class="page-title">⛏️ Mining Stats</div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="stat-balance">0</div>
+            <div class="stat-label">💰 Total WOLF</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-mined">0</div>
+            <div class="stat-label">⛏️ Times Mined</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">10</div>
+            <div class="stat-label">🎁 Per Mine</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">1h</div>
+            <div class="stat-label">⏰ Cooldown</div>
+        </div>
+    </div>
 </div>
 
-<button class="mine-btn" onclick="mine()" id="mineBtn">
-    <img src="wolf.png" style="width:170px; height:170px; object-fit:cover; border-radius:50%;" alt="Wolf">
-</button>
+<!-- FRIENDS PAGE -->
+<div class="page" id="page-friends">
+    <div class="page-title">👥 Invite Friends</div>
+    <div class="friends-card">
+        <div style="font-size:14px; color:#888; margin-bottom:10px;">Your Referrals</div>
+        <div style="font-size:36px; font-weight:bold;" id="ref-count">0</div>
+        <div style="font-size:12px; color:#888; margin-top:5px;">Friends Invited</div>
+    </div>
+    <div class="friends-card">
+        <div style="font-size:14px; color:#888; margin-bottom:10px;">🎁 Each referral = 50 WOLF bonus!</div>
+    </div>
+    <div class="ref-link" id="ref-link">t.me/WolfCoinMineBot?start=USER_ID</div>
+    <button class="invite-btn" onclick="copyLink()">📋 Copy Invite Link</button>
+    <button class="invite-btn" onclick="shareLink()">📤 Share Link</button>
+</div>
 
-<div class="mine-text">TAP TO MINE</div>
-<div class="timer" id="timer">Mine Now! ⛏️</div>
+<!-- TOP PAGE -->
+<div class="page" id="page-top">
+    <div class="page-title">🏆 Top Miners</div>
+    <div id="top-list"></div>
+</div>
 
-<div style="height: 80px"></div>
-
+<!-- BOTTOM NAV -->
 <div class="bottom-nav">
-    <div class="nav-item active">
+    <div class="nav-item active" onclick="showPage('home', this)">
         <div class="nav-icon">🏠</div>
         <div>Home</div>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('mine', this)">
         <div class="nav-icon">⛏️</div>
         <div>Mine</div>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('friends', this)">
         <div class="nav-icon">👥</div>
         <div>Friends</div>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('top', this)">
         <div class="nav-icon">🏆</div>
         <div>Top</div>
     </div>
@@ -175,53 +245,111 @@
 <script>
     let balance = parseInt(localStorage.getItem('wolfBalance') || '0');
     let lastMine = parseInt(localStorage.getItem('lastMine') || '0');
-    
-    document.getElementById('balance').textContent = balance;
-    
+    let mineCount = parseInt(localStorage.getItem('mineCount') || '0');
+    let refCount = parseInt(localStorage.getItem('refCount') || '0');
+    let userId = 'USER_' + Math.random().toString(36).substr(2, 9);
+
+    // Telegram Web App
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userId = tg.initDataUnsafe.user.id;
+        }
+    }
+
+    updateUI();
+
+    function updateUI() {
+        document.getElementById('balance-home').textContent = balance;
+        document.getElementById('stat-balance').textContent = balance;
+        document.getElementById('stat-mined').textContent = mineCount;
+        document.getElementById('ref-count').textContent = refCount;
+        document.getElementById('ref-link').textContent = 
+            't.me/WolfCoinMineBot?start=' + userId;
+    }
+
+    function showPage(page, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        el.classList.add('active');
+        if (page === 'top') loadTop();
+    }
+
+    function mine() {
+        const now = Date.now();
+        const cooldown = 3600000;
+        if (now - lastMine < cooldown) {
+            const remaining = Math.ceil((cooldown - (now - lastMine)) / 60000);
+            showToast('⏰ Wait ' + remaining + ' minutes!');
+            return;
+        }
+        balance += 10;
+        lastMine = now;
+        mineCount++;
+        localStorage.setItem('wolfBalance', balance);
+        localStorage.setItem('lastMine', lastMine);
+        localStorage.setItem('mineCount', mineCount);
+
+        // Save to leaderboard
+        let lb = JSON.parse(localStorage.getItem('leaderboard') || '{}');
+        lb[userId] = { name: 'Wolf_' + userId.toString().slice(-4), balance: balance };
+        localStorage.setItem('leaderboard', JSON.stringify(lb));
+
+        updateUI();
+        showToast('⛏️ Mined 10 WOLF!');
+        const btn = document.getElementById('mineBtn');
+        btn.style.transform = 'scale(0.9)';
+        setTimeout(() => btn.style.transform = 'scale(1)', 200);
+    }
+
+    function loadTop() {
+        let lb = JSON.parse(localStorage.getItem('leaderboard') || '{}');
+        lb[userId] = { name: 'You 🐺', balance: balance };
+        const sorted = Object.values(lb).sort((a,b) => b.balance - a.balance).slice(0, 10);
+        const medals = ['🥇', '🥈', '🥉'];
+        let html = '';
+        sorted.forEach((u, i) => {
+            html += `<div class="top-item">
+                <div class="top-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i] || (i+1)}</div>
+                <div class="top-name">${u.name}</div>
+                <div class="top-balance">${u.balance} WOLF</div>
+            </div>`;
+        });
+        document.getElementById('top-list').innerHTML = html || '<div style="text-align:center;padding:20px;color:#888">No miners yet!</div>';
+    }
+
+    function copyLink() {
+        const link = 't.me/WolfCoinMineBot?start=' + userId;
+        navigator.clipboard.writeText(link).then(() => showToast('✅ Link Copied!'));
+    }
+
+    function shareLink() {
+        const link = 'https://t.me/share/url?url=t.me/WolfCoinMineBot?start=' + userId + '&text=🐺 Join Wolf Coin - Free Mining!';
+        window.open(link);
+    }
+
     function showToast(msg) {
         const toast = document.getElementById('toast');
         toast.textContent = msg;
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 2000);
     }
-    
-    function mine() {
-        const now = Date.now();
-        const cooldown = 3600000;
-        
-        if (now - lastMine < cooldown) {
-            const remaining = Math.ceil((cooldown - (now - lastMine)) / 60000);
-            showToast(`⏰ Wait ${remaining} minutes!`);
-            return;
-        }
-        
-        balance += 10;
-        lastMine = now;
-        localStorage.setItem('wolfBalance', balance);
-        localStorage.setItem('lastMine', lastMine);
-        document.getElementById('balance').textContent = balance;
-        showToast('⛏️ Mined 10 WOLF!');
-        
-        const btn = document.getElementById('mineBtn');
-        btn.style.transform = 'scale(0.9)';
-        setTimeout(() => btn.style.transform = 'scale(1)', 200);
-    }
-    
+
     function updateTimer() {
         const now = Date.now();
         const cooldown = 3600000;
         const remaining = cooldown - (now - lastMine);
-        
         if (remaining <= 0) {
             document.getElementById('timer').textContent = 'Mine Now! ⛏️';
         } else {
             const mins = Math.floor(remaining / 60000);
             const secs = Math.floor((remaining % 60000) / 1000);
-            document.getElementById('timer').textContent = 
-                `Next mine: ${mins}m ${secs}s`;
+            document.getElementById('timer').textContent = 'Next mine: ' + mins + 'm ' + secs + 's';
         }
     }
-    
+
     setInterval(updateTimer, 1000);
     updateTimer();
 </script>
