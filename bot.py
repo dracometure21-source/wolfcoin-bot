@@ -6,9 +6,8 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 import urllib.request
-import urllib.parse
 
-BOT_TOKEN = os.environ.get('BOT_TOKEN', '8842710767:AAFUmyxxdQIcWvOLL8qRmsBZgvcywqw18Qs')
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 SUPABASE_URL = "https://tlxxenwpzawblplolati.supabase.co"
 SUPABASE_KEY = "sb_publishable_Sk-ZZvk2Yv1lbxkQXIUSNw_prss_Rx0"
 
@@ -71,11 +70,8 @@ def main_menu():
 def start(message):
     user_id = str(message.from_user.id)
     username = message.from_user.first_name
-    
     user = get_user(user_id)
-    
     if not user:
-        # Check referral
         parts = message.text.split()
         if len(parts) > 1:
             ref_id = parts[1]
@@ -87,7 +83,6 @@ def start(message):
                         "referrals": ref_user["referrals"] + 1
                     })
         user = create_user(user_id, username)
-    
     bot.send_message(message.chat.id, f"""
 🐺 *Welcome to Wolf Coin Mining Bot!*
 
@@ -101,28 +96,23 @@ Choose an option below:
 def mine(call):
     user_id = str(call.from_user.id)
     user = get_user(user_id)
-    
     if not user:
         user = create_user(user_id, call.from_user.first_name)
-    
     current_time = int(time.time())
     last_mine = user["last_mine"]
     cooldown = 3600
-    
     if current_time - last_mine < cooldown:
         remaining = int(cooldown - (current_time - last_mine))
         minutes = remaining // 60
         seconds = remaining % 60
         bot.answer_callback_query(call.id, f"⏰ Wait {minutes}m {seconds}s!")
         return
-    
     reward = 10
     update_user(user_id, {
         "balance": user["balance"] + reward,
         "last_mine": current_time,
         "mine_count": user["mine_count"] + 1
     })
-    
     bot.edit_message_text(f"""
 ⛏️ *Mining Successful!*
 
@@ -136,11 +126,9 @@ def mine(call):
 def balance(call):
     user_id = str(call.from_user.id)
     user = get_user(user_id)
-    
     if not user:
         bot.answer_callback_query(call.id, "❌ First use /start!")
         return
-    
     bot.edit_message_text(f"""
 💰 *Your Wolf Coin Balance*
 
@@ -159,7 +147,6 @@ def top(call):
     for i, u in enumerate(users):
         medal = medals[i] if i < 3 else str(i+1)
         text += f"{medal} {u['username']} — {u['balance']} WOLF\n"
-    
     bot.edit_message_text(text, call.message.chat.id, call.message.message_id,
     parse_mode="Markdown", reply_markup=main_menu())
 
@@ -168,7 +155,6 @@ def invite(call):
     user_id = str(call.from_user.id)
     user = get_user(user_id)
     refs = user['referrals'] if user else 0
-    
     bot.edit_message_text(f"""
 👥 *Invite Friends!*
 
@@ -180,16 +166,13 @@ def invite(call):
     """, call.message.chat.id, call.message.message_id,
     parse_mode="Markdown", reply_markup=main_menu())
 
-# API Server
 class ApiHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-        
         path = self.path
-        
         if path.startswith('/api/user/'):
             user_id = path.split('/')[-1]
             user = get_user(user_id)
@@ -197,14 +180,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(user).encode())
             else:
                 self.wfile.write(json.dumps({"balance": 0, "mine_count": 0, "referrals": 0}).encode())
-        
         elif path == '/api/top':
             users = get_top_users()
             self.wfile.write(json.dumps(users).encode())
-        
         else:
             self.wfile.write(json.dumps({"status": "ok"}).encode())
-    
     def log_message(self, format, *args):
         pass
 
