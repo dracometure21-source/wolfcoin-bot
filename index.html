@@ -101,9 +101,6 @@
             margin: 10px 20px;
         }
         .top-rank { font-size: 20px; font-weight: bold; width: 40px; color: #888; }
-        .top-rank.gold { color: #FFD700; }
-        .top-rank.silver { color: #C0C0C0; }
-        .top-rank.bronze { color: #CD7F32; }
         .top-name { flex: 1; font-size: 16px; }
         .top-balance { font-size: 16px; color: #888; }
         .bottom-nav {
@@ -172,7 +169,7 @@
         <img src="wolf.png" alt="Wolf">
     </button>
     <div class="mine-text">TAP TO MINE</div>
-    <div class="timer" id="timer">Mine Now! ⛏️</div>
+    <div class="timer" id="timer">Loading...</div>
 </div>
 
 <!-- MINE PAGE -->
@@ -207,9 +204,9 @@
         <div style="font-size:12px; color:#888; margin-top:5px;">Friends Invited</div>
     </div>
     <div class="friends-card">
-        <div style="font-size:14px; color:#888; margin-bottom:10px;">🎁 Each referral = 50 WOLF bonus!</div>
+        <div style="font-size:14px; color:#888;">🎁 Each referral = 50 WOLF bonus!</div>
     </div>
-    <div class="ref-link" id="ref-link">t.me/WolfCoinMineBot?start=USER_ID</div>
+    <div class="ref-link" id="ref-link">Loading...</div>
     <button class="invite-btn" onclick="copyLink()">📋 Copy Invite Link</button>
     <button class="invite-btn" onclick="shareLink()">📤 Share Link</button>
 </div>
@@ -217,7 +214,7 @@
 <!-- TOP PAGE -->
 <div class="page" id="page-top">
     <div class="page-title">🏆 Top Miners</div>
-    <div id="top-list"></div>
+    <div id="top-list"><div style="text-align:center;padding:20px;color:#888">Loading...</div></div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -243,22 +240,41 @@
 <div class="toast" id="toast"></div>
 
 <script>
-    let balance = parseInt(localStorage.getItem('wolfBalance') || '0');
-    let lastMine = parseInt(localStorage.getItem('lastMine') || '0');
-    let mineCount = parseInt(localStorage.getItem('mineCount') || '0');
-    let refCount = parseInt(localStorage.getItem('refCount') || '0');
-    let userId = 'USER_' + Math.random().toString(36).substr(2, 9);
+    let userId = null;
+    let userName = 'Wolf User';
+    let balance = 0;
+    let lastMine = 0;
+    let mineCount = 0;
+    let refCount = 0;
 
-    // Telegram Web App
+    // Telegram WebApp Init
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.expand();
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             userId = tg.initDataUnsafe.user.id;
+            userName = tg.initDataUnsafe.user.first_name;
         }
     }
 
-    updateUI();
+    // Load user data from bot
+    async function loadUserData() {
+        if (!userId) {
+            userId = localStorage.getItem('wolfUserId') || 'guest_' + Date.now();
+            localStorage.setItem('wolfUserId', userId);
+        }
+        
+        try {
+            // Try to get from localStorage first
+            balance = parseInt(localStorage.getItem('wolfBalance_' + userId) || '0');
+            lastMine = parseInt(localStorage.getItem('wolfLastMine_' + userId) || '0');
+            mineCount = parseInt(localStorage.getItem('wolfMineCount_' + userId) || '0');
+            refCount = parseInt(localStorage.getItem('wolfRefCount_' + userId) || '0');
+        } catch(e) {}
+        
+        updateUI();
+        updateTimer();
+    }
 
     function updateUI() {
         document.getElementById('balance-home').textContent = balance;
@@ -288,14 +304,21 @@
         balance += 10;
         lastMine = now;
         mineCount++;
-        localStorage.setItem('wolfBalance', balance);
-        localStorage.setItem('lastMine', lastMine);
-        localStorage.setItem('mineCount', mineCount);
+        
+        localStorage.setItem('wolfBalance_' + userId, balance);
+        localStorage.setItem('wolfLastMine_' + userId, lastMine);
+        localStorage.setItem('wolfMineCount_' + userId, mineCount);
 
         // Save to leaderboard
-        let lb = JSON.parse(localStorage.getItem('leaderboard') || '{}');
-        lb[userId] = { name: 'Wolf_' + userId.toString().slice(-4), balance: balance };
-        localStorage.setItem('leaderboard', JSON.stringify(lb));
+        let lb = JSON.parse(localStorage.getItem('wolfLeaderboard') || '[]');
+        let existing = lb.find(u => u.id == userId);
+        if (existing) {
+            existing.balance = balance;
+            existing.name = userName;
+        } else {
+            lb.push({id: userId, name: userName, balance: balance});
+        }
+        localStorage.setItem('wolfLeaderboard', JSON.stringify(lb));
 
         updateUI();
         showToast('⛏️ Mined 10 WOLF!');
@@ -305,19 +328,34 @@
     }
 
     function loadTop() {
-        let lb = JSON.parse(localStorage.getItem('leaderboard') || '{}');
-        lb[userId] = { name: 'You 🐺', balance: balance };
-        const sorted = Object.values(lb).sort((a,b) => b.balance - a.balance).slice(0, 10);
+        let lb = JSON.parse(localStorage.getItem('wolfLeaderboard') || '[]');
+        
+        // Add current user
+        let existing = lb.find(u => u.id == userId);
+        if (existing) {
+            existing.balance = balance;
+        } else if (balance > 0) {
+            lb.push({id: userId, name: userName, balance: balance});
+        }
+
+        lb.sort((a,b) => b.balance - a.balance);
+        const top10 = lb.slice(0, 10);
         const medals = ['🥇', '🥈', '🥉'];
+        
         let html = '';
-        sorted.forEach((u, i) => {
-            html += `<div class="top-item">
-                <div class="top-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i] || (i+1)}</div>
-                <div class="top-name">${u.name}</div>
-                <div class="top-balance">${u.balance} WOLF</div>
-            </div>`;
-        });
-        document.getElementById('top-list').innerHTML = html || '<div style="text-align:center;padding:20px;color:#888">No miners yet!</div>';
+        if (top10.length === 0) {
+            html = '<div style="text-align:center;padding:20px;color:#888">No miners yet! Be first! 🐺</div>';
+        } else {
+            top10.forEach((u, i) => {
+                const isMe = u.id == userId;
+                html += `<div class="top-item" style="${isMe ? 'border-color:#555;' : ''}">
+                    <div class="top-rank">${medals[i] || (i+1)}</div>
+                    <div class="top-name">${u.name}${isMe ? ' 👈' : ''}</div>
+                    <div class="top-balance">${u.balance} WOLF</div>
+                </div>`;
+            });
+        }
+        document.getElementById('top-list').innerHTML = html;
     }
 
     function copyLink() {
@@ -326,7 +364,7 @@
     }
 
     function shareLink() {
-        const link = 'https://t.me/share/url?url=t.me/WolfCoinMineBot?start=' + userId + '&text=🐺 Join Wolf Coin - Free Mining!';
+        const link = 'https://t.me/share/url?url=t.me/WolfCoinMineBot%3Fstart%3D' + userId + '&text=🐺 Join Wolf Coin - Free Mining!';
         window.open(link);
     }
 
@@ -351,7 +389,7 @@
     }
 
     setInterval(updateTimer, 1000);
-    updateTimer();
+    loadUserData();
 </script>
 
 </body>
